@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f5f7fb">
+  <title>kelompok 4 | Smart Door</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar" id="sidebar">
+      <a class="brand" href="#overview" aria-label="Kelompok 4 beranda">
+    <img src="Chuuya Nakahara.jpg." alt="Logo Kelompok 4" class="brand-logo">
+    <span>
+        <strong>Kelompok 4</strong>
+        <small>ACCESS CONTROL</small>
+    </span>
+</a>
+
+      <div class="nav-label">MENU UTAMA</div>
+      <nav class="nav">
+        <button class="nav-link active" data-page="overview"><span>▦</span> Overview</button>
+        <button class="nav-link" data-page="history"><span>◷</span> Access History</button>
+        <button class="nav-link" data-page="users"><span>♙</span> User Management</button>
+        <button class="nav-link" data-page="device"><span>⌁</span> Device Status</button>
+      </nav>
+
+      <div class="sidebar-bottom">
+        <div class="connection-mini">
+          <span class="status-dot" id="sideDot"></span>
+          <div><strong id="sideConnection">Menunggu ESP32</strong><small>Local network</small></div>
+        </div>
+        <small class="sidebar-version">Kelompok 4 · Prototype v1.0</small>
+      </div>
+    </aside>
+
+    <main class="main-content">
+      <header class="topbar">
+        <button class="menu-button" id="menuButton" aria-label="Buka menu">☰</button>
+        <div class="breadcrumb">Workspace <span>/</span> <strong id="breadcrumbPage">Overview</strong></div>
+        <div class="topbar-right">
+          <span class="connection-pill" id="connectionPill"><i class="status-dot"></i><span>Menunggu ESP32</span></span>
+          <div class="avatar">NA</div>
+        </div>
+      </header>
+
+      <section class="page active" id="page-overview">
+        <div class="page-heading">
+          <div><p class="eyebrow">SMART DOOR MANAGEMENT</p><h1>Overview</h1><p class="subheading">Pantau kondisi perangkat dan aktivitas akses pintu.</p></div>
+          <div class="date-chip" id="currentDate">--</div>
+        </div>
+
+        <div class="hero-card">
+          <div>
+            <span class="hero-kicker">DOOR CONTROL UNIT</span>
+            <h2>Access monitoring<br>made simple.</h2>
+            <p>Status pintu akan diperbarui ketika ESP32 terhubung.</p>
+          </div>
+          <div class="door-illustration" aria-hidden="true"><div class="door"><span></span></div><div class="door-base"></div></div>
+        </div>
+
+        <div class="section-title"><div><h2>System overview</h2><p>Ringkasan kondisi Smart Door saat ini.</p></div><span class="live-label"><i></i> LIVE STATUS</span></div>
+        <div class="stats-grid">
+          <article class="stat-card"><div class="stat-top"><span>Door status</span><span class="stat-icon blue">▣</span></div><strong id="doorStatus">--</strong><small id="doorDetail">Menunggu data perangkat</small></article>
+          <article class="stat-card"><div class="stat-top"><span>ESP32 connection</span><span class="stat-icon green">⌁</span></div><strong id="deviceStatus">Offline</strong><small id="deviceDetail">Belum ada koneksi</small></article>
+          <article class="stat-card"><div class="stat-top"><span>Registered users</span><span class="stat-icon purple">♙</span></div><strong id="userCount">--</strong><small>UID terdaftar pada perangkat</small></article>
+          <article class="stat-card"><div class="stat-top"><span>Today's access</span><span class="stat-icon orange">◷</span></div><strong id="todayCount">--</strong><small id="todayDetail">Menunggu data riwayat</small></article>
+        </div>
+
+        <div class="content-grid">
+          <article class="panel">
+            <div class="panel-heading"><div><h3>Recent activity</h3><p>Aktivitas akses terbaru dari ESP32.</p></div><button class="text-button" data-goto="history">Lihat semua →</button></div>
+            <div class="table-wrap"><table><thead><tr><th>EVENT</th><th>WAKTU</th><th>STATUS</th></tr></thead><tbody id="recentRows"><tr><td colspan="3" class="empty-state">Belum ada data dari ESP32.</td></tr></tbody></table></div>
+          </article>
+          <article class="panel quick-panel">
+            <div class="panel-heading"><div><h3>Device summary</h3><p>Ringkasan koneksi perangkat.</p></div></div>
+            <div class="device-row"><span class="device-symbol">ESP</span><div><strong>ESP32 Controller</strong><small id="ipAddress">IP: belum tersedia</small></div><span class="tiny-status" id="espTiny">OFFLINE</span></div>
+            <div class="device-row"><span class="device-symbol">RF</span><div><strong>RFID RC522</strong><small>SPI interface</small></div><span class="tiny-status neutral">--</span></div>
+            <div class="device-row"><span class="device-symbol">LCD</span><div><strong>LCD 16×2</strong><small>I²C interface</small></div><span class="tiny-status neutral">--</span></div>
+            <div class="device-row"><span class="device-symbol">SG</span><div><strong>Servo SG90</strong><small>Door actuator</small></div><span class="tiny-status neutral">--</span></div>
+          </article>
+        </div>
+      </section>
+
+      <section class="page" id="page-history">
+        <div class="page-heading"><div><p class="eyebrow">ACTIVITY CENTER</p><h1>Access History</h1><p class="subheading">Catatan autentikasi yang diterima dari ESP32.</p></div></div>
+        <article class="panel">
+          <div class="panel-heading"><div><h3>All access events</h3><p>Data diperbarui otomatis setiap beberapa detik.</p></div><span class="filter-chip">Semua aktivitas</span></div>
+          <div class="table-wrap"><table><thead><tr><th>EVENT</th><th>UID</th><th>WAKTU</th><th>HASIL</th></tr></thead><tbody id="historyRows"><tr><td colspan="4" class="empty-state">Belum ada data dari ESP32.</td></tr></tbody></table></div>
+        </article>
+      </section>
+
+      <section class="page" id="page-users">
+        <div class="page-heading"><div><p class="eyebrow">ACCESS AUTHORIZATION</p><h1>User Management</h1><p class="subheading">Daftar UID yang diizinkan mengakses prototype.</p></div></div>
+        <article class="panel">
+          <div class="panel-heading"><div><h3>Registered RFID cards</h3><p>Daftar ini ditampilkan dari data yang dikirim ESP32.</p></div></div>
+          <div class="table-wrap"><table><thead><tr><th>NO.</th><th>USER LABEL</th><th>RFID UID</th><th>STATUS</th></tr></thead><tbody id="userRows"><tr><td colspan="4" class="empty-state">Belum ada data pengguna dari ESP32.</td></tr></tbody></table></div>
+          <p class="notice">Pengelolaan atau penambahan UID belum diaktifkan pada versi awal. Pendaftaran kartu tetap dilakukan melalui konfigurasi firmware.</p>
+        </article>
+      </section>
+
+      <section class="page" id="page-device">
+        <div class="page-heading"><div><p class="eyebrow">HARDWARE MONITORING</p><h1>Device Status</h1><p class="subheading">Informasi koneksi dan komponen Smart Door.</p></div></div>
+        <div class="device-grid">
+          <article class="panel device-detail"><span class="device-symbol large">ESP</span><h3>ESP32 DevKit V1</h3><p>Main controller & Wi-Fi web server</p><div class="detail-line"><span>Connection</span><strong id="detailConnection">Offline</strong></div><div class="detail-line"><span>IP address</span><strong id="detailIP">--</strong></div><div class="detail-line"><span>Last response</span><strong id="lastResponse">--</strong></div></article>
+          <article class="panel device-detail"><span class="device-symbol large">RF</span><h3>RFID RC522</h3><p>Card authentication module</p><div class="detail-line"><span>Interface</span><strong>SPI</strong></div><div class="detail-line"><span>GPIO SS</span><strong>5</strong></div><div class="detail-line"><span>GPIO RST</span><strong>16</strong></div></article>
+          <article class="panel device-detail"><span class="device-symbol large">LCD</span><h3>LCD 16×2 I²C</h3><p>Local status display</p><div class="detail-line"><span>SDA</span><strong>GPIO 21</strong></div><div class="detail-line"><span>SCL</span><strong>GPIO 22</strong></div></article>
+          <article class="panel device-detail"><span class="device-symbol large">SG</span><h3>Servo SG90</h3><p>Mechanical latch actuator</p><div class="detail-line"><span>Signal</span><strong>GPIO 13</strong></div><div class="detail-line"><span>Control</span><strong>Firmware</strong></div></article>
+        </div>
+      </section>
+
+      <footer class="footer">Kelompok 4 <span>·</span> ESP32 Smart Door Prototype <span>·</span> <span id="footerYear"></span></footer>
+    </main>
+  </div>
+  <div class="toast" id="toast" role="status"></div>
+  <script src="app.js"></script>
+</body>
+</html>
