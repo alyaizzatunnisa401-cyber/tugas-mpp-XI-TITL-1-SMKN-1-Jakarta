@@ -1,28 +1,38 @@
-// NEXUS ACCESS - Frontend dashboard
-// API contract yang diharapkan dari firmware ESP32:
-// GET /api/status -> { online:true, door:"LOCKED"|"UNLOCKED", ip:"192.168.x.x", userCount:2, todayCount:4 }
-// GET /api/logs   -> [{ event:"RFID", uid:"01 02 03 04", result:"GRANTED"|"DENIED", time:"08:15:32" }]
-// GET /api/users  -> [{ label:"User 1", uid:"01 02 03 04", active:true }]
-//
-// Untuk preview tanpa ESP32, dashboard akan menampilkan status menunggu perangkat.
+// KELOMPOK 4 - Smart Door Frontend Dashboard (Firebase Realtime Database)
+import { initializeApp } from "https://gstatic.com";
+import { getDatabase, ref, onValue } from "https://gstatic.com";
 
-const API_BASE = ""; // Kosongkan jika halaman disajikan langsung oleh ESP32.
-const POLL_INTERVAL = 3000;
+const firebaseConfig = {
+  apiKey: "AIzaSyDEpx3No8-YoD5OzKcd4yeMLJZH6ha66LI",
+  authDomain: "://firebaseapp.com",
+  databaseURL: "https://firebasedatabase.app",
+  projectId: "smart-door-mpp-kel4-xi-titl-1",
+  storageBucket: "smart-door-mpp-kel4-xi-titl-1.firebasestorage.app",
+  messagingSenderId: "157521729698",
+  appId: "1:157521729698:web:38f819d3a5940c0de5dffb"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
 
 const $ = (id) => document.getElementById(id);
-const state = { status: null, logs: [], users: [], lastSeen: null };
+const state = { status: null, logs: [], users: [], lastBeat: 0 };
 
 function setConnection(online) {
   const label = online ? "ESP32 Terhubung" : "Menunggu ESP32";
-  $("sideConnection").textContent = label;
-  $("connectionPill").querySelector("span").textContent = online ? "ESP32 Online" : "Menunggu ESP32";
-  $("sideDot").classList.toggle("online", online);
-  $("connectionPill").querySelector(".status-dot").classList.toggle("online", online);
-  $("deviceStatus").textContent = online ? "Online" : "Offline";
-  $("deviceDetail").textContent = online ? "Terhubung ke dashboard" : "Belum ada koneksi";
-  $("espTiny").textContent = online ? "ONLINE" : "OFFLINE";
-  $("espTiny").classList.toggle("neutral", !online);
-  $("detailConnection").textContent = online ? "Online" : "Offline";
+  if ($("sideConnection")) $("sideConnection").textContent = label;
+  if ($("connectionPill")) {
+    $("connectionPill").querySelector("span").textContent = online ? "ESP32 Online" : "Menunggu ESP32";
+    $("connectionPill").querySelector(".status-dot").classList.toggle("online", online);
+  }
+  if ($("sideDot")) $("sideDot").classList.toggle("online", online);
+  if ($("deviceStatus")) $("deviceStatus").textContent = online ? "Online" : "Offline";
+  if ($("deviceDetail")) $("deviceDetail").textContent = online ? "Terhubung ke dashboard" : "Belum ada koneksi";
+  if ($("espTiny")) {
+    $("espTiny").textContent = online ? "ONLINE" : "OFFLINE";
+    $("espTiny").classList.toggle("neutral", !online);
+  }
+  if ($("detailConnection")) $("detailConnection").textContent = online ? "Online" : "Offline";
 }
 
 function safeText(value, fallback = "--") {
@@ -31,21 +41,35 @@ function safeText(value, fallback = "--") {
 
 function renderStatus(data) {
   state.status = data;
-  const online = data.online === true;
-  setConnection(online);
-  $("doorStatus").textContent = safeText(data.door, "--").toUpperCase();
-  $("doorDetail").textContent = data.door === "UNLOCKED" ? "Akses terbuka" : data.door === "LOCKED" ? "Pengunci aktif" : "Menunggu data perangkat";
-  $("userCount").textContent = safeText(data.userCount);
-  $("todayCount").textContent = safeText(data.todayCount);
-  $("todayDetail").textContent = "Total event hari ini";
-  $("ipAddress").textContent = "IP: " + safeText(data.ip, "belum tersedia");
-  $("detailIP").textContent = safeText(data.ip);
-  $("lastResponse").textContent = new Date().toLocaleTimeString("id-ID");
-  $("footerYear").textContent = new Date().getFullYear();
+  const isAlive = data.heartbeat && (Date.now() - state.lastBeat < 15000);
+  setConnection(Boolean(isAlive));
+
+  const doorVal = safeText(data.door, "--").toUpperCase();
+  if ($("doorStatus")) $("doorStatus").textContent = doorVal;
+  if ($("doorDetail")) {
+    $("doorDetail").textContent = doorVal === "UNLOCKED"
+      ? "Akses terbuka"
+      : doorVal === "LOCKED"
+      ? "Pengunci aktif"
+      : "Menunggu data perangkat";
+  }
+
+  if ($("ipAddress")) $("ipAddress").textContent = "IP: " + safeText(data.ip, "belum tersedia");
+  if ($("detailIP")) $("detailIP").textContent = safeText(data.ip);
+  if ($("lastResponse")) $("lastResponse").textContent = new Date().toLocaleTimeString("id-ID");
+}
+
+function escapeHTML(value) {
+  return String(value).replace(/[&<>"']/g, char => ({
+    "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+  })[char]);
 }
 
 function renderLogs(logs) {
   state.logs = Array.isArray(logs) ? logs : [];
+  if ($("todayCount")) $("todayCount").textContent = state.logs.length;
+  if ($("todayDetail")) $("todayDetail").textContent = "Total event tercatat";
+
   const recent = state.logs.slice(0, 5);
   const makeRows = (items, includeUid) => items.length ? items.map(item => {
     const granted = String(item.result).toUpperCase() === "GRANTED";
@@ -56,69 +80,75 @@ function renderLogs(logs) {
       <td><span class="result ${granted ? "granted" : "denied"}">${granted ? "GRANTED" : "DENIED"}</span></td>
     </tr>`;
   }).join("") : `<tr><td colspan="${includeUid ? 4 : 3}" class="empty-state">Belum ada data dari ESP32.</td></tr>`;
-  $("recentRows").innerHTML = makeRows(recent, false);
-  $("historyRows").innerHTML = makeRows(state.logs, true);
+
+  if ($("recentRows")) $("recentRows").innerHTML = makeRows(recent, false);
+  if ($("historyRows")) $("historyRows").innerHTML = makeRows(state.logs, true);
 }
 
 function renderUsers(users) {
   state.users = Array.isArray(users) ? users : [];
-  $("userRows").innerHTML = state.users.length ? state.users.map((user, index) => `
-    <tr>
-      <td>${index + 1}</td>
-      <td>${escapeHTML(safeText(user.label, "User"))}</td>
-      <td>${escapeHTML(safeText(user.uid))}</td>
-      <td><span class="result ${user.active ? "granted" : "denied"}">${user.active ? "ACTIVE" : "INACTIVE"}</span></td>
-    </tr>`).join("") : `<tr><td colspan="4" class="empty-state">Belum ada data pengguna dari ESP32.</td></tr>`;
-}
+  if ($("userCount")) $("userCount").textContent = state.users.length;
 
-function escapeHTML(value) {
-  return String(value).replace(/[&<>"']/g, char => ({
-    "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
-  })[char]);
-}
-
-async function fetchJSON(path) {
-  const response = await fetch(`${API_BASE}${path}`, { cache: "no-store" });
-  if (!response.ok) throw new Error(`HTTP ${response.status}`);
-  return response.json();
-}
-
-async function refreshDashboard() {
-  try {
-    const [status, logs, users] = await Promise.all([
-      fetchJSON("/api/status"),
-      fetchJSON("/api/logs"),
-      fetchJSON("/api/users")
-    ]);
-    renderStatus(status);
-    renderLogs(logs);
-    renderUsers(users);
-    state.lastSeen = Date.now();
-  } catch (error) {
-    setConnection(false);
-    // Jangan tampilkan pop-up berulang saat ESP32 belum terhubung.
-    console.info("ESP32 API belum tersedia:", error.message);
+  if ($("userRows")) {
+    $("userRows").innerHTML = state.users.length ? state.users.map((user, index) => `
+      <tr>
+        <td>${index + 1}</td>
+        <td>${escapeHTML(safeText(user.label, "User"))}</td>
+        <td>${escapeHTML(safeText(user.uid))}</td>
+        <td><span class="result ${user.active !== false ? "granted" : "denied"}">${user.active !== false ? "ACTIVE" : "INACTIVE"}</span></td>
+      </tr>`).join("") : `<tr><td colspan="4" class="empty-state">Belum ada data pengguna dari ESP32.</td></tr>`;
   }
 }
 
+// === LISTENER FIREBASE REAL-TIME ===
+onValue(ref(db, "status"), (snapshot) => {
+  const data = snapshot.val();
+  if (data) {
+    if (data.heartbeat) state.lastBeat = Date.now();
+    renderStatus(data);
+  } else {
+    setConnection(false);
+  }
+});
+
+onValue(ref(db, "logs"), (snapshot) => {
+  const raw = snapshot.val();
+  const list = raw ? Object.values(raw).reverse() : [];
+  renderLogs(list);
+});
+
+onValue(ref(db, "users"), (snapshot) => {
+  const raw = snapshot.val();
+  const list = raw ? Object.values(raw) : [];
+  renderUsers(list);
+});
+
+// Cek otomatis tiap 3 detik jika ESP32 putus koneksi / mati listrik
+setInterval(() => {
+  if (state.lastBeat > 0 && (Date.now() - state.lastBeat > 15000)) {
+    setConnection(false);
+  }
+}, 3000);
+
+// === NAVIGASI & UI BAWAAN ===
 function showPage(pageName) {
   document.querySelectorAll(".page").forEach(page => page.classList.remove("active"));
   document.querySelectorAll(".nav-link").forEach(link => link.classList.toggle("active", link.dataset.page === pageName));
   const page = $("page-" + pageName);
   if (page) page.classList.add("active");
   const activeLink = document.querySelector(`.nav-link[data-page="${pageName}"]`);
-  $("breadcrumbPage").textContent = activeLink ? activeLink.textContent.trim() : "Overview";
-  $("sidebar").classList.remove("open");
+  if ($("breadcrumbPage")) $("breadcrumbPage").textContent = activeLink ? activeLink.textContent.trim() : "Overview";
+  if ($("sidebar")) $("sidebar").classList.remove("open");
 }
 
 document.querySelectorAll(".nav-link").forEach(link => link.addEventListener("click", () => showPage(link.dataset.page)));
 document.querySelectorAll("[data-goto]").forEach(button => button.addEventListener("click", () => showPage(button.dataset.goto)));
-$("menuButton").addEventListener("click", () => $("sidebar").classList.toggle("open"));
+if ($("menuButton")) $("menuButton").addEventListener("click", () => $("sidebar").classList.toggle("open"));
 
-$("currentDate").textContent = new Date().toLocaleDateString("id-ID", {
-  weekday: "long", day: "numeric", month: "long", year: "numeric"
-});
-$("footerYear").textContent = new Date().getFullYear();
+if ($("currentDate")) {
+  $("currentDate").textContent = new Date().toLocaleDateString("id-ID", {
+    weekday: "long", day: "numeric", month: "long", year: "numeric"
+  });
+}
+if ($("footerYear")) $("footerYear").textContent = new Date().getFullYear();
 setConnection(false);
-refreshDashboard();
-setInterval(refreshDashboard, POLL_INTERVAL);
