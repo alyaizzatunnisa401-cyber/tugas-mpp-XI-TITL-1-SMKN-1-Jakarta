@@ -1,19 +1,16 @@
 // KELOMPOK 4 - Smart Door Frontend Dashboard (Firebase Realtime Database)
-import { initializeApp } from "https://gstatic.com";
-import { getDatabase, ref, onValue } from "https://gstatic.com";
-
 const firebaseConfig = {
   apiKey: "AIzaSyDEpx3No8-YoD5OzKcd4yeMLJZH6ha66LI",
-  authDomain: "smart-door-mpp-kel4-xi-titl-1.firebaseapp.com",
-  databaseURL: "https://smart-door-mpp-kel4-xi-titl-1-default-rtdb.asia-southeast1.firebasedatabase.app",
+  authDomain: "://firebaseapp.com",
+  databaseURL: "https://firebasedatabase.app",
   projectId: "smart-door-mpp-kel4-xi-titl-1",
   storageBucket: "smart-door-mpp-kel4-xi-titl-1.firebasestorage.app",
   messagingSenderId: "157521729698",
   appId: "1:157521729698:web:38f819d3a5940c0de5dffb"
 };
 
-const app = initializeApp(firebaseConfig);
-const db = getDatabase(app);
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
 
 const $ = (id) => document.getElementById(id);
 const state = { status: null, logs: [], users: [], lastBeat: 0 };
@@ -101,7 +98,7 @@ function renderUsers(users) {
 }
 
 // === LISTENER FIREBASE REAL-TIME ===
-onValue(ref(db, "status"), (snapshot) => {
+db.ref("status").on("value", (snapshot) => {
   const data = snapshot.val();
   if (data) {
     if (data.heartbeat) state.lastBeat = Date.now();
@@ -111,13 +108,13 @@ onValue(ref(db, "status"), (snapshot) => {
   }
 });
 
-onValue(ref(db, "logs"), (snapshot) => {
+db.ref("logs").on("value", (snapshot) => {
   const raw = snapshot.val();
   const list = raw ? Object.values(raw).reverse() : [];
   renderLogs(list);
 });
 
-onValue(ref(db, "users"), (snapshot) => {
+db.ref("users").on("value", (snapshot) => {
   const raw = snapshot.val();
   const list = raw ? Object.values(raw) : [];
   renderUsers(list);
