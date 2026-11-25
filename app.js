@@ -149,10 +149,3 @@ if ($("currentDate")) {
 }
 if ($("footerYear")) $("footerYear").textContent = new Date().getFullYear();
 setConnection(false);
-
-  <script src="https://gstatic.com"></script>
-  <script src="https://gstatic.com"></script>
-  <script src="app.js?v=4"></script>
-</body>
-</html>
-
