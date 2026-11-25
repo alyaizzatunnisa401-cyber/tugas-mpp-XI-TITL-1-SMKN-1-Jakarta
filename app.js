@@ -4,8 +4,8 @@ import { getDatabase, ref, onValue } from "https://gstatic.com";
 
 const firebaseConfig = {
   apiKey: "AIzaSyDEpx3No8-YoD5OzKcd4yeMLJZH6ha66LI",
-  authDomain: "://firebaseapp.com",
-  databaseURL: "https://firebasedatabase.app",
+  authDomain: "smart-door-mpp-kel4-xi-titl-1.firebaseapp.com",
+  databaseURL: "https://smart-door-mpp-kel4-xi-titl-1-default-rtdb.asia-southeast1.firebasedatabase.app",
   projectId: "smart-door-mpp-kel4-xi-titl-1",
   storageBucket: "smart-door-mpp-kel4-xi-titl-1.firebasestorage.app",
   messagingSenderId: "157521729698",
