@@ -169,3 +169,6 @@ if ($("currentDate")) {
 }
 if ($("footerYear")) $("footerYear").textContent = new Date().getFullYear();
 setConnection(false);
+}
+
+startDashboard();
