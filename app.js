@@ -19,19 +19,6 @@ function loadScript(src) {
   });
 }
 
-async function startDashboard() {
-  const base = "https://gstatic.com";
-  await loadScript(base + "firebase-app-compat.js");
-  await loadScript(base + "firebase-database-compat.js");
-
-  firebase.initializeApp(firebaseConfig);
-  const db = firebase.database();
-  initApp(db);
-}
-
-function initApp(db) {
-
-
 const $ = (id) => document.getElementById(id);
 const state = { status: null, logs: [], users: [], lastBeat: 0 };
 
@@ -117,37 +104,6 @@ function renderUsers(users) {
   }
 }
 
-// === LISTENER FIREBASE REAL-TIME ===
-db.ref("status").on("value", (snapshot) => {
-  const data = snapshot.val();
-  if (data) {
-    if (data.heartbeat) state.lastBeat = Date.now();
-    renderStatus(data);
-  } else {
-    setConnection(false);
-  }
-});
-
-db.ref("logs").on("value", (snapshot) => {
-  const raw = snapshot.val();
-  const list = raw ? Object.values(raw).reverse() : [];
-  renderLogs(list);
-});
-
-db.ref("users").on("value", (snapshot) => {
-  const raw = snapshot.val();
-  const list = raw ? Object.values(raw) : [];
-  renderUsers(list);
-});
-
-// Cek otomatis tiap 3 detik jika ESP32 putus koneksi / mati listrik
-setInterval(() => {
-  if (state.lastBeat > 0 && (Date.now() - state.lastBeat > 15000)) {
-    setConnection(false);
-  }
-}, 3000);
-
-// === NAVIGASI & UI BAWAAN ===
 function showPage(pageName) {
   document.querySelectorAll(".page").forEach(page => page.classList.remove("active"));
   document.querySelectorAll(".nav-link").forEach(link => link.classList.toggle("active", link.dataset.page === pageName));
@@ -169,6 +125,42 @@ if ($("currentDate")) {
 }
 if ($("footerYear")) $("footerYear").textContent = new Date().getFullYear();
 setConnection(false);
+
+async function startDashboard() {
+  const base = "https://gstatic.com";
+  await loadScript(base + "firebase-app-compat.js");
+  await loadScript(base + "firebase-database-compat.js");
+
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.database();
+
+  db.ref("status").on("value", (snapshot) => {
+    const data = snapshot.val();
+    if (data) {
+      if (data.heartbeat) state.lastBeat = Date.now();
+      renderStatus(data);
+    } else {
+      setConnection(false);
+    }
+  });
+
+  db.ref("logs").on("value", (snapshot) => {
+    const raw = snapshot.val();
+    const list = raw ? Object.values(raw).reverse() : [];
+    renderLogs(list);
+  });
+
+  db.ref("users").on("value", (snapshot) => {
+    const raw = snapshot.val();
+    const list = raw ? Object.values(raw) : [];
+    renderUsers(list);
+  });
+
+  setInterval(() => {
+    if (state.lastBeat > 0 && (Date.now() - state.lastBeat > 15000)) {
+      setConnection(false);
+    }
+  }, 3000);
 }
 
 startDashboard();
