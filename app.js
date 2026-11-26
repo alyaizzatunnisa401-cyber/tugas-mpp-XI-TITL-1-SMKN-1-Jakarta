@@ -1,14 +1,13 @@
 // KELOMPOK 4 - Smart Door Frontend Dashboard (Firebase Realtime Database)
 const firebaseConfig = {
-  apiKey: "AIzaSyDEpx3No8-YoD5OzKcd4yeMLJZH6ha66LI",
-  authDomain: "://firebaseapp.com",
-  databaseURL: "https://firebasedatabase.app",
+  apiKey: "API_KEY_KAMU",
+  authDomain: "smart-door-mpp-kel4-xi-titl-1.firebaseapp.com",
+  databaseURL: "https://smart-door-mpp-kel4-xi-titl-1-default-rtdb.asia-southeast1.firebasedatabase.app",
   projectId: "smart-door-mpp-kel4-xi-titl-1",
   storageBucket: "smart-door-mpp-kel4-xi-titl-1.firebasestorage.app",
   messagingSenderId: "157521729698",
   appId: "1:157521729698:web:38f819d3a5940c0de5dffb"
 };
-
 function loadScript(src) {
   return new Promise((resolve, reject) => {
     const s = document.createElement("script");
